@@ -27,7 +27,7 @@ class ModelArgs:
     norm_eps: float = 1e-5
 
     max_batch_size: int = 32
-    max_seq_len: int = 2048
+    max_seq_len: int = 2048 # 支持的最长序列，也就是 decoder 可以识别的最长序列，包括 prompt 和模型生成的
 
 
 class RMSNorm(torch.nn.Module):

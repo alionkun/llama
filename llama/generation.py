@@ -17,7 +17,7 @@ class LLaMA:
     def generate(
         self,
         prompts: List[str],
-        max_gen_len: int,
+        max_gen_len: int, # 模型生成的最大 token 长度
         temperature: float = 0.8,
         top_p: float = 0.95,
     ) -> List[str]:
@@ -30,13 +30,13 @@ class LLaMA:
         min_prompt_size = min([len(t) for t in prompt_tokens])
         max_prompt_size = max([len(t) for t in prompt_tokens])
 
-        total_len = min(params.max_seq_len, max_gen_len + max_prompt_size)
+        total_len = min(params.max_seq_len, max_gen_len + max_prompt_size) # 限定该 batch 的最大 token 数，包括 prompt 和生成的内容
 
         tokens = torch.full((bsz, total_len), self.tokenizer.pad_id).cuda().long()
         for k, t in enumerate(prompt_tokens):
-            tokens[k, : len(t)] = torch.tensor(t).long()
-        input_text_mask = tokens != self.tokenizer.pad_id
-        start_pos = min_prompt_size
+            tokens[k, : len(t)] = torch.tensor(t).long() # 根据 total_len 为当前 batch 预生成一个 token 矩阵，此时有效的是 prompt 部分，待生成部分填充 pad_id
+        input_text_mask = tokens != self.tokenizer.pad_id # 输入 mask ，即 prompt mask
+        start_pos = min_prompt_size # 开始预测的起始位置对应最短的 prompt
         prev_pos = 0
         for cur_pos in range(start_pos, total_len):
             logits = self.model.forward(tokens[:, prev_pos:cur_pos], prev_pos)
